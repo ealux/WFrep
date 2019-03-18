@@ -74,6 +74,7 @@ namespace WF
         #endregion
     //
     //
+    //TODO MyEquals Staff
     #region MyEqualityForUserUr
         //Проверка свойств по объекту, К КОТОРОМУ ПРИМЕНЯЕТСЯ РАСШИРЕНИЕ
         class MyEqualityComparer1to2Ur : IEqualityComparer<UserUr>

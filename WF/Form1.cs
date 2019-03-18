@@ -236,9 +236,9 @@ namespace WF
                     Paths.Add(nn.Text);
                 }
             }
-
+            //TODO Form1 Start condition
             btnStart.Visible = false;
-            Task t = Task.Factory.StartNew(() => Engine3.Перебор(Paths));
+            Task t = Task.Factory.StartNew(() => EngineUr.Перебор(Paths));
             await t;      
 
             //Paths.Clear();
