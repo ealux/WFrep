@@ -11,6 +11,8 @@ namespace WF
     {
         public static string SavePath;
 
+        public static bool isUr { get; set; }
+
         public static List<string> Paths = new List<string>();
 
         Lock2 locker2;
@@ -38,6 +40,8 @@ namespace WF
             _label5 = label5;
             _btnstart = btnStart;
             _LogTextBox = logBox;
+            if (isUr) this.Text += " - Юридические лица";
+            else this.Text += " - Физические лица";
         }
 
         /// <summary>
@@ -235,10 +239,20 @@ namespace WF
                     Paths.Add(nn.Text);
                 }
             }
-            //TODO Form1 Start condition
+
             btnStart.Visible = false;
-            Task t = Task.Factory.StartNew(() => EngineUr.Перебор(Paths));
-            await t;      
+
+            if (isUr)
+            {
+                Task t = Task.Factory.StartNew(() => EngineUr.Перебор(Paths));
+                await t;
+            }
+            else
+            {
+                Task t = Task.Factory.StartNew(() => Engine3.Перебор(Paths));
+                await t;
+            }
+                
 
             //Paths.Clear();
         }

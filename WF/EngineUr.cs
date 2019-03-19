@@ -223,7 +223,6 @@ namespace WF
         //Main method
         private static List<UserUr> Classif(List<List<UserUr>> lst)
         {
-            //TODO Продукт логики отбора
             List<UserUr> worker = lst[0];
 
             for (int i = 1; i < lst.Count; i++)

@@ -19,6 +19,10 @@ namespace WF
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+
+            //Form1 basic = new Form1();
+            //basic.Visible = false;
+            Application.Run(new SelectorForm());
             Application.Run(new Form1());
         }
     }

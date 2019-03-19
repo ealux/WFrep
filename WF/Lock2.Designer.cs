@@ -81,7 +81,7 @@
             this.Controls.Add(this.label1);
             this.Controls.Add(this.лстПапки);
             this.Name = "Lock2";
-            this.Size = new System.Drawing.Size(256, 426);
+            this.Size = new System.Drawing.Size(272, 426);
             this.ResumeLayout(false);
             this.PerformLayout();
 

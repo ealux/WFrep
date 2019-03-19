@@ -132,10 +132,23 @@ namespace WF
         /// <returns></returns>
         private static List<User> ConverterToList(this ExcelPackage p)
         {
+
+            //Stopwatch s = Stopwatch.StartNew();
+            //List<User> buf = new List<User>();
+
+            //var sh = p.Workbook.Worksheets[1];
+            //int row = 14;
+
+            //while (sh.Cells[row, 3].Text.NotInvalidText())
+            //{
+            //    buf.Add(CreateUser(sh, row));
+            //    row++;
+            //}
+            //
             var mas = from c in p.Workbook.Worksheets[1].Cells[14, 1, p.GetLastRow(), 1].AsParallel()
                       select CreateUser(p.Workbook.Worksheets[1], c.End.Row);
-
             List<User> buf = mas.ToList();
+            //MessageBox.Show(s.Elapsed.ToString());
             return buf;
         }
 
@@ -148,7 +161,6 @@ namespace WF
         private static User CreateUser(this ExcelWorksheet p, int timer)
         {
             User user = new User();
-            //TODO Подумать над преобразованием заполнения для физиков
             for (int i = 0; i < 31; i++)
             {
                 user.SetUserParams(i, p.Cells[timer, i+1].Text ?? null);
