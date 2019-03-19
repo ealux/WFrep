@@ -148,7 +148,7 @@ namespace WF
         private static User CreateUser(this ExcelWorksheet p, int timer)
         {
             User user = new User();
-
+            //TODO Подумать над преобразованием заполнения для физиков
             for (int i = 0; i < 31; i++)
             {
                 user.SetUserParams(i, p.Cells[timer, i+1].Text ?? null);
@@ -199,6 +199,7 @@ namespace WF
             return false;
         }
 
+        //TODO Реализовать возможность слияния данных по ЗавНомеруСчетчика
         //Main method
         private static List<User> Classif(List<List<User>> lst)
         {
@@ -224,17 +225,7 @@ namespace WF
                 task2.Start();
                 Task.WaitAll(task1, task2);
 
-                //ExcelPackage Buffer = new ExcelPackage();
-                //Buffer.Workbook.Worksheets.Add("Shit");
-
-                //PrintToExcel(Buffer, bufRangeCurrent, 1);
-                //PrintToExcel(Buffer, bufRangeNext, 2);
-                //Buffer.SaveAs(new FileInfo(Form1.SavePath));
-
-                //break;
-
                 var NextRemains = workerNext.Except(bufRangeNext, new MyEqualityComparerWithoutData()).ToList();
-                //MessageBox.Show(s.Elapsed.ToString() + $" 1"); s.Restart();
 
                 current = current.Except(bufRangeCurrent, new MyEqualityComparerWithoutData()).ToList();
 
@@ -245,13 +236,10 @@ namespace WF
                     bufRangeCurrent[j].SetUserParams(23, bufRangeNext[j].UserParams(23));
                 }
 
-               // MessageBox.Show(s.Elapsed.ToString() + $" 2"); s.Restart();
 
                 current = current.Concat(bufRangeCurrent).Concat(NextRemains).ToList();
-                //MessageBox.Show(s.Elapsed.ToString() + $" 3"); s.Restart();
 
                 worker = current.Distinct(new MyEqualityComparerFull()).ToList();
-                //MessageBox.Show(s.Elapsed.ToString() + $" 4"); s.Restart();
                 
                 logTextBox_Update("Проверен: " + file[0] + "\\..\\" + file[file.Length - 3]
                                   + "\\" + file[file.Length - 2]
@@ -277,17 +265,6 @@ namespace WF
                     continue;
                 }
             }
-
-            //try
-            //{
-            //    worker.ForEach(u =>
-            //    {
-            //        u.SetUserParams(24,
-            //            (Convert.ToDouble(u.UserParams(23)) - Convert.ToDouble(u.UserParams(21))).ToString());
-            //    });
-            //}
-            //catch (Exception) { }
-
 
             return worker;
         }

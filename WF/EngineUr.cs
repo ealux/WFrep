@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using OfficeOpenXml;
 using System.Windows.Forms;
+using Microsoft.Office.Interop.Excel;
 
 namespace WF
 {
@@ -13,15 +14,13 @@ namespace WF
     {
         public static void Перебор(List<string> Paths)
         {
-            Stopwatch s = Stopwatch.StartNew();
-
             //Файл сводного итогда
             ExcelPackage Buffer = new ExcelPackage();
             Buffer.Workbook.Worksheets.Add("Sheet1");
 
             //Создание массивов и общего списка по входным данным
             List<List<UserUr>> books = new List<List<UserUr>>();
-            List<Task> tasks = new List<Task>();
+
             Label4_Update("Этап 1 из 4");
             logTextBox_Update("Подготовка файлов\n");
 
@@ -32,12 +31,41 @@ namespace WF
                 Label5_Update("В обработке: " + file[0] + "\\..\\" + file[file.Length - 3]
                               + "\\" + file[file.Length - 2]
                               + "\\" + file[file.Length - 1]);
-                using (var ex = new ExcelPackage(new FileInfo(v)))
+                try
                 {
-                    var e = ex.ConverterToListUr();
-                    books.Add(e);
-                    //books.Add(e.Intersect(e, new MyEqualityComparerWithoutData()).ToList());
+                    using (var ex = new ExcelPackage(new FileInfo(v)))
+                    {
+                        var e = ex.ConverterToListUr();
+                        books.Add(e);
+                    }
                 }
+                catch (Exception)
+                {
+                    //Конвертируем файл в расширение .xlsx, используя Interop.Excel
+                    var excelApp = new Microsoft.Office.Interop.Excel.Application();
+                    excelApp.Visible = false;
+                    excelApp.DisplayAlerts = false;
+                    var book = excelApp.Workbooks.Add(v);
+                    book.SaveAs(v + "x", XlFileFormat.xlOpenXMLWorkbook);
+                    var p = book.Path + "\\" + book.Name;
+                    book.Close();
+                    excelApp.Quit();
+                    //Обрабатываем пересохраненный файл
+                    using (var ex = new ExcelPackage(new FileInfo(p)))
+                    {
+                        var e = ex.ConverterToListUr();
+                        books.Add(e);
+                        File.Delete(v);
+                    }
+                    //MessageBox.Show(
+                    //    "Внимание!\n\nВы пытаетесь обработать файл формата (*xls).\nДля корректной работы преобразуйте выбраный файл в формат (*.xlsx)!",
+                    //    "Ошибка!");
+                    //Form1.Paths.Clear();
+                    //butStart_Update(true);
+
+                    //return;
+                }
+
                 Label5_Update("");
                 logTextBox_Update("Обработан: " + file[0] + "\\..\\" + file[file.Length - 3]
                                   + "\\" + file[file.Length - 2]
@@ -47,12 +75,12 @@ namespace WF
 
             Label4_Update("Этап 2 из 4");
             logTextBox_Update("\nПоиск\n");
-            //TODO Реализовать логику отбора
-            //var b = Classif(books);
+
+            var b = Classif(books);
 
             Label4_Update("Этап 4 из 4");
             logTextBox_Update("\nСохраняем выходной файл\n");
-            PrintToExcelUr(Buffer, books[0], 1);
+            PrintToExcelUr(Buffer, b, 1);
             Buffer.SaveAs(new FileInfo(Form1.SavePath));
 
             logTextBox_Update("\nФайл сохранен: " + Form1.SavePath);
@@ -86,7 +114,7 @@ namespace WF
             int rows = 17;
             foreach (UserUr u in users)
             {
-                for (int i = 0; i < 37; i++)
+                for (int i = 0; i < 24; i++)
                 {
                     bookToSave.Workbook.Worksheets[sheetNumber].Cells[rows, i + 1].Value = u.UserParams(i);
                 }
@@ -192,27 +220,6 @@ namespace WF
             return user;
         }
 
-        //
-        //bool HELPERs
-        //
-        /// <summary>
-        /// Булева оценка содержимого строки
-        /// </summary>
-        /// <param name="str">Входящая строка</param>
-        /// <returns></returns>
-        //public static bool NotInvalidText(this string str)
-        //{
-        //    if (!string.IsNullOrWhiteSpace(str) &&
-        //        !string.IsNullOrEmpty(str) &&
-        //        str != "б/п" &&
-        //        str != "-" &&
-        //        str != "0" &&
-        //        str != "б/н" &&
-        //        str != "" &&
-        //        !str.StartsWith("Кор")) return true;
-        //    return false;
-        //}
-
         //Main method
         private static List<UserUr> Classif(List<List<UserUr>> lst)
         {
@@ -233,77 +240,67 @@ namespace WF
 
                 //Stopwatch s = Stopwatch.StartNew();
                 var current = workerCurrent;
-                Task task1 = new Task(() => bufRangeCurrent = current.Intersect(workerNext, new MyEqualityComparer2to1Ur()).OrderBy(u => u.UserParams(1)).ToList());
-                Task task2 = new Task(() => bufRangeNext = workerNext.Intersect(current, new MyEqualityComparer1to2Ur()).OrderBy(u => u.UserParams(1)).ToList());
+                Task task1 = new Task(() => bufRangeCurrent = current.Intersect(workerNext, new MyEqualityComparer2to1Ur()).OrderBy(u => u.UserParams(0)).ToList());
+                Task task2 = new Task(() => bufRangeNext = workerNext.Intersect(current, new MyEqualityComparer1to2Ur()).OrderBy(u => u.UserParams(0)).ToList());
                 task1.Start();
                 task2.Start();
                 Task.WaitAll(task1, task2);
 
-                //ExcelPackage Buffer = new ExcelPackage();
-                //Buffer.Workbook.Worksheets.Add("Shit");
-
-                //PrintToExcel(Buffer, bufRangeCurrent, 1);
-                //PrintToExcel(Buffer, bufRangeNext, 2);
-                //Buffer.SaveAs(new FileInfo(Form1.SavePath));
-
-                //break;
-
                 var NextRemains = workerNext.Except(bufRangeNext, new MyEqualityComparerWithoutDataUr()).ToList();
-                //MessageBox.Show(s.Elapsed.ToString() + $" 1"); s.Restart();
 
                 current = current.Except(bufRangeCurrent, new MyEqualityComparerWithoutDataUr()).ToList();
 
                 for (int j = 0; j < bufRangeCurrent.Count; j++)
                 {
-                    if (!bufRangeNext[j].UserParams(22).NotInvalidText()) continue;
+                    if (!bufRangeNext[j].UserParams(21).NotInvalidText()) continue;
+                    bufRangeCurrent[j].SetUserParams(21, bufRangeNext[j].UserParams(21));
                     bufRangeCurrent[j].SetUserParams(22, bufRangeNext[j].UserParams(22));
-                    bufRangeCurrent[j].SetUserParams(23, bufRangeNext[j].UserParams(23));
                 }
 
-                // MessageBox.Show(s.Elapsed.ToString() + $" 2"); s.Restart();
-
                 current = current.Concat(bufRangeCurrent).Concat(NextRemains).ToList();
-                //MessageBox.Show(s.Elapsed.ToString() + $" 3"); s.Restart();
 
                 worker = current.Distinct(new MyEqualityComparerFullUr()).ToList();
-                //MessageBox.Show(s.Elapsed.ToString() + $" 4"); s.Restart();
 
                 logTextBox_Update("Проверен: " + file[0] + "\\..\\" + file[file.Length - 3]
                                   + "\\" + file[file.Length - 2]
                                   + "\\" + file[file.Length - 1]);
                 Label5_Update("");
-
             }
 
             Label4_Update("Этап 3 из 4");
             logTextBox_Update("\nЗавершена проверка. Готовим выходныой файл...\n");
-            worker = worker.Where((u) => { return u.КонПокДата.NotInvalidText(); }).OrderBy(n => n.UserParams(0)).ToList();
+            worker = worker.Where((u) => { return u.КонПокДата.NotInvalidText(); }).OrderBy(n => n.UserParams(0)).ThenBy(n => n.UserParams(3)).ToList();
 
-            //foreach (var u in worker)
-            //{
-            //    try
-            //    {
-            //        u.SetUserParams(24,
-            //            (Convert.ToDouble(u.UserParams(23)) - Convert.ToDouble(u.UserParams(21))).ToString());
-            //    }
-            //    catch (Exception)
-            //    {
-            //        u.SetUserParams(24, "");
-            //        continue;
-            //    }
-            //}
+            foreach (var u in worker)
+            {
+                if (u.UserParams(20).Contains(".")) u.SetUserParams(20, u.UserParams(20).Replace(".", ","));
+                if (u.UserParams(22).Contains(".")) u.SetUserParams(22, u.UserParams(22).Replace(".", ","));
+                if (!u.UserParams(20).NotInvalidText()) u.SetUserParams(20, "0");
+                if (!u.UserParams(22).NotInvalidText()) u.SetUserParams(22, "0");
 
-            //try
-            //{
-            //    worker.ForEach(u =>
-            //    {
-            //        u.SetUserParams(24,
-            //            (Convert.ToDouble(u.UserParams(23)) - Convert.ToDouble(u.UserParams(21))).ToString());
-            //    });
-            //}
-            //catch (Exception) { }
+                u.SetUserParams(23,
+                    (Convert.ToDouble(u.UserParams(22)) - Convert.ToDouble(u.UserParams(20))).ToString());
 
-
+                //try
+                //{
+                //    u.SetUserParams(23,
+                //        (Convert.ToDouble(u.UserParams(22)) - Convert.ToDouble(u.UserParams(20))).ToString());
+                //}
+                //catch (Exception)
+                //{
+                //    if (u.UserParams(20).Contains(".")) u.SetUserParams(20, u.UserParams(20).Replace(".", ","));
+                //    if (u.UserParams(22).Contains(".")) u.SetUserParams(22, u.UserParams(22).Replace(".", ","));
+                //    try
+                //    {
+                //        u.SetUserParams(23,
+                //            (Convert.ToDouble(u.UserParams(22)) - Convert.ToDouble(u.UserParams(20))).ToString());
+                //    }
+                //    catch (Exception)
+                //    {
+                //        u.SetUserParams(23, "");
+                //    }
+                //}
+            }
             return worker;
         }
 

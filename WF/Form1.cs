@@ -16,7 +16,6 @@ namespace WF
         Lock2 locker2;
 
         public static TreeView Ttree { get; set; }
-
         public static Button _btnstart { get; set; }
         public static Label _label4 { get; set; }
         public static Label _label5 { get; set; }
