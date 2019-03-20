@@ -199,6 +199,11 @@ namespace WF
             lblFold.Text = $"Всего каталогов: {fd}";
         }
 
+        /// <summary>
+        /// Старт расчета
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void btnStart_Click(object sender, EventArgs e)
         {
             
