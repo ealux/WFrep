@@ -291,7 +291,8 @@ namespace WF
 
             Label4_Update("Этап 3 из 4");
             logTextBox_Update("\nЗавершена проверка. Готовим выходныой файл...\n");
-            worker = worker.Where((u) => { return u.КонПокДата.NotInvalidText(); }).OrderBy(n=>n.UserParams(0)).ToList();
+            worker = worker.Where((u) => { return u.НачПокДата.NotInvalidText(); }).OrderBy(n => n.UserParams(0)).ToList();
+            worker = worker.Where((u) => { return u.КонПокДата.NotInvalidText(); }).OrderBy(n => n.UserParams(0)).ToList();
 
             //Групировка по ЗаводскомуНомеруСчетчика + ТрафинойЗонеСуток
             if (Form1.CounterGroup)
