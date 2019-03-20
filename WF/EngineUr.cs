@@ -220,68 +220,6 @@ namespace WF
             return user;
         }
 
-        /// <summary>
-        /// Функция для сравнения дат. Возвращает true если аргумент является более поздней датой.
-        /// </summary>
-        /// <param name="s1">Дата к которой применяется сравнение</param>
-        /// <param name="s2">Дата, с которой производится сравнение (аргумент)</param>
-        /// <returns></returns>
-        public static bool IsEarlyThen(this string s1, string s2)
-        {
-            var str1 = s1.Split('.');
-            var str2 = s2.Split('.');
-
-            short[] num1 = {Convert.ToInt16(str1[0]), Convert.ToInt16(str1[1]), Convert.ToInt16(str1[2])};
-            short[] num2 = {Convert.ToInt16(str2[0]), Convert.ToInt16(str2[1]), Convert.ToInt16(str2[2])};
-
-            bool str = false;
-
-            for (int i = 2; i >= 0; i--)
-            {
-                if(num2[i] == num1[i])
-                {
-                    if (i == 0)
-                    {
-                        return str;
-                    }
-                    continue;
-                }
-
-                if (num2[i] > num1[i]) return true;
-                else return false;
-            }
-            return str;
-        }
-
-        /// <summary>
-        /// Поиск самого пользователя по наиболее ранней или поздней дате показаний в заданном списке
-        /// </summary>
-        /// <param name="s">Список пользователей</param>
-        /// <param name="paramNamber">Номер параметра (Дата Начальных или Конечных показаний)</param>
-        /// <param name="EarlyRgm">Режим: true - Поиск самого раннего
-        ///                               false - Поиск самого позднего</param>
-        private static UserUr TheEarliest(this List<UserUr> s, int paramNamber, bool EarlyRgm)
-        {
-            if (s.Count == 1) return s[0];
-            UserUr erl = s[0];
-
-            if (EarlyRgm)
-            {
-                for (int i = 1; i < s.Count; i++)
-                {
-                    if (s[i].UserParams(paramNamber).IsEarlyThen(erl.UserParams(paramNamber))) erl = s[i];
-                }
-            }
-            else
-            {
-                for (int i = 1; i < s.Count; i++)
-                {
-                    if (erl.UserParams(paramNamber).IsEarlyThen(s[i].UserParams(paramNamber))) erl = s[i];
-                }
-            }
-            return erl;
-        }
-
         //Main method
         private static List<UserUr> Classif(List<List<UserUr>> lst)
         {
@@ -332,32 +270,6 @@ namespace WF
             logTextBox_Update("\nЗавершена проверка. Готовим выходныой файл...\n");
             worker = worker.Where((u) => { return u.КонПокДата.NotInvalidText(); }).OrderBy(n => n.UserParams(0)).ThenBy(n => n.UserParams(3)).ToList();
 
-            //Групировка по ЗаводскомуНомеруСчетчика + ТрафинойЗонеСуток
-            if (Form1.CounterGroup)
-            {
-                List<UserUr> subWorker = new List<UserUr>();
-
-                var grp = from u in worker
-                    group u by new { p1 = u.UserParams(17), p2 = u.UserParams(15) };
-
-                foreach (var us in grp)
-                {
-                    var lastDate = us.ToList().TheEarliest(21, false).UserParams(21);
-                    var lastValue = us.ToList().TheEarliest(21, false).UserParams(22);
-                    var u = us.ToList().TheEarliest(19, true);
-
-                    u.SetUserParams(21, lastDate);
-                    u.SetUserParams(22, lastValue);
-
-                    subWorker.Add(u);
-                }
-
-                subWorker = subWorker.OrderBy(n => n.UserParams(0)).ThenBy(n => n.UserParams(3)).ToList();
-
-                worker = subWorker;
-            }
-
-            //Вычисление суммарного расхода за найденый период показаний
             foreach (var u in worker)
             {
                 if (u.UserParams(20).Contains(".")) u.SetUserParams(20, u.UserParams(20).Replace(".", ","));
@@ -367,6 +279,26 @@ namespace WF
 
                 u.SetUserParams(23,
                     (Convert.ToDouble(u.UserParams(22)) - Convert.ToDouble(u.UserParams(20))).ToString());
+
+                //try
+                //{
+                //    u.SetUserParams(23,
+                //        (Convert.ToDouble(u.UserParams(22)) - Convert.ToDouble(u.UserParams(20))).ToString());
+                //}
+                //catch (Exception)
+                //{
+                //    if (u.UserParams(20).Contains(".")) u.SetUserParams(20, u.UserParams(20).Replace(".", ","));
+                //    if (u.UserParams(22).Contains(".")) u.SetUserParams(22, u.UserParams(22).Replace(".", ","));
+                //    try
+                //    {
+                //        u.SetUserParams(23,
+                //            (Convert.ToDouble(u.UserParams(22)) - Convert.ToDouble(u.UserParams(20))).ToString());
+                //    }
+                //    catch (Exception)
+                //    {
+                //        u.SetUserParams(23, "");
+                //    }
+                //}
             }
             return worker;
         }

@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("Корень");
+            System.Windows.Forms.TreeNode treeNode7 = new System.Windows.Forms.TreeNode("Корень");
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.tree = new System.Windows.Forms.TreeView();
             this.label1 = new System.Windows.Forms.Label();
@@ -48,20 +48,19 @@
             this.label7 = new System.Windows.Forms.Label();
             this.label8 = new System.Windows.Forms.Label();
             this.logBox = new System.Windows.Forms.RichTextBox();
-            this.chkCounter = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // tree
             // 
             this.tree.Location = new System.Drawing.Point(281, 27);
             this.tree.Name = "tree";
-            treeNode3.Checked = true;
-            treeNode3.Name = "root";
-            treeNode3.Tag = "0";
-            treeNode3.Text = "Корень";
-            treeNode3.ToolTipText = "Коррневая папка (программа)";
+            treeNode7.Checked = true;
+            treeNode7.Name = "root";
+            treeNode7.Tag = "0";
+            treeNode7.Text = "Корень";
+            treeNode7.ToolTipText = "Коррневая папка (программа)";
             this.tree.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode3});
+            treeNode7});
             this.tree.Size = new System.Drawing.Size(507, 343);
             this.tree.TabIndex = 1;
             this.tree.AfterCollapse += new System.Windows.Forms.TreeViewEventHandler(this.tree_AfterCollapse);
@@ -179,7 +178,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(12, 344);
+            this.button1.Location = new System.Drawing.Point(12, 334);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(117, 23);
             this.button1.TabIndex = 15;
@@ -189,7 +188,7 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(146, 347);
+            this.textBox1.Location = new System.Drawing.Point(146, 337);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(120, 20);
             this.textBox1.TabIndex = 17;
@@ -199,7 +198,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(143, 322);
+            this.label7.Location = new System.Drawing.Point(143, 312);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(115, 13);
             this.label7.TabIndex = 18;
@@ -208,7 +207,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(12, 322);
+            this.label8.Location = new System.Drawing.Point(12, 312);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(117, 13);
             this.label8.TabIndex = 19;
@@ -219,26 +218,14 @@
             this.logBox.Location = new System.Drawing.Point(15, 97);
             this.logBox.Name = "logBox";
             this.logBox.ReadOnly = true;
-            this.logBox.Size = new System.Drawing.Size(251, 192);
+            this.logBox.Size = new System.Drawing.Size(251, 199);
             this.logBox.TabIndex = 20;
             this.logBox.Text = "";
-            // 
-            // chkCounter
-            // 
-            this.chkCounter.AutoSize = true;
-            this.chkCounter.Location = new System.Drawing.Point(15, 296);
-            this.chkCounter.Name = "chkCounter";
-            this.chkCounter.Size = new System.Drawing.Size(258, 17);
-            this.chkCounter.TabIndex = 21;
-            this.chkCounter.Text = "Группировка по заводскому номеру счетчика";
-            this.chkCounter.UseVisualStyleBackColor = true;
-            this.chkCounter.CheckedChanged += new System.EventHandler(this.chkCounter_CheckedChanged);
             // 
             // Form1
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.ClientSize = new System.Drawing.Size(800, 424);
-            this.Controls.Add(this.chkCounter);
             this.Controls.Add(this.logBox);
             this.Controls.Add(this.label8);
             this.Controls.Add(this.label7);
@@ -284,7 +271,6 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.RichTextBox logBox;
-        private System.Windows.Forms.CheckBox chkCounter;
     }
 }
 

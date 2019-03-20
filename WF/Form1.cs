@@ -12,7 +12,6 @@ namespace WF
         public static string SavePath;
 
         public static bool isUr { get; set; }
-        public static bool CounterGroup { get; set; }
 
         public static List<string> Paths = new List<string>();
 
@@ -247,7 +246,6 @@ namespace WF
             }
 
             btnStart.Visible = false;
-            chkCounter.Enabled = false;
 
             if (isUr)
             {
@@ -282,24 +280,6 @@ namespace WF
                 return;
             }
             SavePath = button1.Text + "\\" + textBox1.Text;
-        }
-
-        /// <summary>
-        /// Подключение пользователем группировки по ЗаводскомуНомеруСчетчика
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void chkCounter_CheckedChanged(object sender, EventArgs e)
-        {
-            switch (chkCounter.CheckState)
-            {
-                case CheckState.Checked:
-                    CounterGroup = true;
-                    break;
-                case CheckState.Unchecked:
-                    CounterGroup = false;
-                    break;
-            }
         }
     }
 
