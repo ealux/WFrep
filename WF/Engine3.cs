@@ -133,20 +133,20 @@ namespace WF
         {
 
             //Stopwatch s = Stopwatch.StartNew();
-            //List<User> buf = new List<User>();
+            List<User> buf = new List<User>();
 
-            //var sh = p.Workbook.Worksheets[1];
-            //int row = 14;
+            var sh = p.Workbook.Worksheets[1];
+            int row = 14;
 
-            //while (sh.Cells[row, 3].Text.NotInvalidText())
-            //{
-            //    buf.Add(CreateUser(sh, row));
-            //    row++;
-            //}
+            while (sh.Cells[row, 3].Text.NotInvalidText())
+            {
+                buf.Add(CreateUser(sh, row));
+                row++;
+            }
             //
-            var mas = from c in p.Workbook.Worksheets[1].Cells[14, 1, p.GetLastRow(), 1].AsParallel()
-                      select CreateUser(p.Workbook.Worksheets[1], c.End.Row);
-            List<User> buf = mas.ToList();
+            //var mas = from c in p.Workbook.Worksheets[1].Cells[14, 1, p.GetLastRow(), 1].AsParallel()
+            //          select CreateUser(p.Workbook.Worksheets[1], c.End.Row);
+            //List<User> buf = mas.ToList();
             //MessageBox.Show(s.Elapsed.ToString());
             return buf;
         }
@@ -189,6 +189,7 @@ namespace WF
             return lastRow;
         }
         
+
         //
         //bool HELPERs
         //
@@ -208,6 +209,35 @@ namespace WF
                 str != "" &&
                 !str.StartsWith("Кор")) return true;
             return false;
+        }
+
+        /// <summary>
+        /// Поиск самого пользователя по наиболее ранней или поздней дате показаний в заданном списке
+        /// </summary>
+        /// <param name="s">Список пользователей</param>
+        /// <param name="paramNamber">Номер параметра (Дата Начальных или Конечных показаний)</param>
+        /// <param name="EarlyRgm">Режим: true - Поиск самого раннего
+        ///                               false - Поиск самого позднего</param>
+        private static User TheEarliest(this List<User> s, int paramNamber, bool EarlyRgm)
+        {
+            if (s.Count == 1) return s[0];
+            User erl = s[0];
+
+            if (EarlyRgm)
+            {
+                for (int i = 1; i < s.Count; i++)
+                {
+                    if (s[i].UserParams(paramNamber).IsEarlyThen(erl.UserParams(paramNamber))) erl = s[i];
+                }
+            }
+            else
+            {
+                for (int i = 1; i < s.Count; i++)
+                {
+                    if (erl.UserParams(paramNamber).IsEarlyThen(s[i].UserParams(paramNamber))) erl = s[i];
+                }
+            }
+            return erl;
         }
 
         //TODO Реализовать возможность слияния данных по ЗавНомеруСчетчика
@@ -263,18 +293,41 @@ namespace WF
             logTextBox_Update("\nЗавершена проверка. Готовим выходныой файл...\n");
             worker = worker.Where((u) => { return u.КонПокДата.NotInvalidText(); }).OrderBy(n=>n.UserParams(0)).ToList();
 
+            //Групировка по ЗаводскомуНомеруСчетчика + ТрафинойЗонеСуток
+            if (Form1.CounterGroup)
+            {
+                List<User> subWorker = new List<User>();
+
+                var grp = from u in worker
+                    group u by new { p1 = u.UserParams(18), p2 = u.UserParams(17) };
+
+                foreach (var us in grp)
+                {
+                    var lastDate = us.ToList().TheEarliest(22, false).UserParams(22);
+                    var lastValue = us.ToList().TheEarliest(22, false).UserParams(23);
+                    var u = us.ToList().TheEarliest(20, true);
+
+                    u.SetUserParams(22, lastDate);
+                    u.SetUserParams(23, lastValue);
+
+                    subWorker.Add(u);
+                }
+
+                subWorker = subWorker.OrderBy(n => n.UserParams(0)).ToList();
+
+                worker = subWorker;
+            }
+
+            //Вычисление суммарного расхода за найденый период показаний
             foreach (var u in worker)
             {
-                try
-                {
-                    u.SetUserParams(24,
-                        (Convert.ToDouble(u.UserParams(23)) - Convert.ToDouble(u.UserParams(21))).ToString());
-                }
-                catch (Exception)
-                {
-                    u.SetUserParams(24, "");
-                    continue;
-                }
+                if (u.UserParams(21).Contains(".")) u.SetUserParams(21, u.UserParams(21).Replace(".", ","));
+                if (u.UserParams(23).Contains(".")) u.SetUserParams(23, u.UserParams(23).Replace(".", ","));
+                if (!u.UserParams(21).NotInvalidText()) u.SetUserParams(21, "0");
+                if (!u.UserParams(23).NotInvalidText()) u.SetUserParams(23, "0");
+
+                u.SetUserParams(24,
+                    (Convert.ToDouble(u.UserParams(23)) - Convert.ToDouble(u.UserParams(21))).ToString());
             }
 
             return worker;
