@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Windows.Forms;
 using OfficeOpenXml;
+using Microsoft.Office.Interop.Excel;
 
 namespace WF
 {
@@ -21,7 +22,6 @@ namespace WF
 
             //Создание массивов и общего списка по входным данным
             List<List<User>> books = new List<List<User>>();
-            List<Task> tasks = new List<Task>();
 
             Label4_Update("Этап 1 из 4");
             logTextBox_Update("Подготовка файлов\n");
@@ -33,11 +33,37 @@ namespace WF
                 Label5_Update("В обработке: " + file[0] + "\\..\\" + file[file.Length - 3]
                               + "\\" + file[file.Length - 2]
                               + "\\" + file[file.Length - 1]);
-                using (var ex = new ExcelPackage(new FileInfo(v)))
+
+                try
                 {
-                    var e = ex.ConverterToList();
-                    books.Add(e.Intersect(e, new MyEqualityComparerWithoutData()).ToList());
+                    using (var ex = new ExcelPackage(new FileInfo(v)))
+                    {
+                        var e = ex.ConverterToList();
+                        books.Add(e.Intersect(e, new MyEqualityComparerWithoutData()).ToList());
+                    }
                 }
+                catch (Exception)
+                {
+                    //Конвертируем файл в расширение .xlsx, используя Interop.Excel
+                    var excelApp = new Microsoft.Office.Interop.Excel.Application
+                    {
+                        Visible = false,
+                        DisplayAlerts = false
+                    };
+                    var book = excelApp.Workbooks.Add(v);
+                    book.SaveAs(v + "x", XlFileFormat.xlOpenXMLWorkbook);
+                    var p = book.Path + "\\" + book.Name;
+                    book.Close();
+                    excelApp.Quit();
+                    //Обрабатываем пересохраненный файл
+                    using (var ex = new ExcelPackage(new FileInfo(p)))
+                    {
+                        var e = ex.ConverterToList();
+                        books.Add(e.Intersect(e, new MyEqualityComparerWithoutData()).ToList());
+                        File.Delete(v);
+                    }
+                }
+
                 Label5_Update("");
                 logTextBox_Update("Обработан: " + file[0] + "\\..\\" + file[file.Length - 3]
                                   + "\\" + file[file.Length - 2]
@@ -240,7 +266,27 @@ namespace WF
             return erl;
         }
 
-        //TODO Реализовать возможность слияния данных по ЗавНомеруСчетчика
+        /// <summary>
+        /// Конвертация показания и перемножение на коэффициент пересчета
+        /// </summary>
+        /// <param name="pok">Показания (начальные/конечные)</param>
+        /// <param name="koef">Коэффициент пересчета</param>
+        /// <returns></returns>
+        private static double ConvertStrToDbleWithMult(string pok, string koef)
+        {
+            double doubl = 0;
+            string opr = pok;
+            string kf = koef;
+
+            if (!opr.NotInvalidText()) return 0;
+            if (opr.Contains(".")) opr = opr.Replace(".", ",");
+            if (kf.Contains(".")) kf = kf.Replace(".", ",");
+
+            if (kf.NotInvalidText()) doubl = Convert.ToDouble(opr) * Convert.ToDouble(kf);
+
+            return doubl;
+        }
+
         //Main method
         private static List<User> Classif(List<List<User>> lst)
         {
@@ -291,8 +337,15 @@ namespace WF
 
             Label4_Update("Этап 3 из 4");
             logTextBox_Update("\nЗавершена проверка. Готовим выходныой файл...\n");
-            worker = worker.Where((u) => { return u.НачПокДата.NotInvalidText(); }).OrderBy(n => n.UserParams(0)).ToList();
-            worker = worker.Where((u) => { return u.КонПокДата.NotInvalidText(); }).OrderBy(n => n.UserParams(0)).ToList();
+            worker = worker.Where(u => u.НачПокДата.NotInvalidText()).OrderBy(n => n.UserParams(0)).ToList();
+            worker = worker.Where(u => u.КонПокДата.NotInvalidText()).OrderBy(n => n.UserParams(0)).ToList();
+
+            //Прогон по КоэфПересчета
+            foreach (var u in worker)
+            {
+                u.SetUserParams(21, ConvertStrToDbleWithMult(u.UserParams(21), u.UserParams(25)).ToString());
+                u.SetUserParams(23, ConvertStrToDbleWithMult(u.UserParams(23), u.UserParams(25)).ToString());
+            }
 
             //Групировка по ЗаводскомуНомеруСчетчика + ТрафинойЗонеСуток
             if (Form1.CounterGroup)

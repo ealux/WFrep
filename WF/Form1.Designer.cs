@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("Корень");
+            System.Windows.Forms.TreeNode treeNode2 = new System.Windows.Forms.TreeNode("Корень");
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.tree = new System.Windows.Forms.TreeView();
             this.label1 = new System.Windows.Forms.Label();
@@ -49,24 +49,29 @@
             this.label8 = new System.Windows.Forms.Label();
             this.logBox = new System.Windows.Forms.RichTextBox();
             this.chkCounter = new System.Windows.Forms.CheckBox();
+            this.Очистка = new System.Windows.Forms.Button();
+            this.SaveTree = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // tree
             // 
+            this.tree.AllowDrop = true;
             this.tree.Location = new System.Drawing.Point(281, 27);
             this.tree.Name = "tree";
-            treeNode3.Checked = true;
-            treeNode3.Name = "root";
-            treeNode3.Tag = "0";
-            treeNode3.Text = "Корень";
-            treeNode3.ToolTipText = "Коррневая папка (программа)";
+            treeNode2.Checked = true;
+            treeNode2.Name = "root";
+            treeNode2.Tag = "0";
+            treeNode2.Text = "Корень";
+            treeNode2.ToolTipText = "Коррневая папка (программа)";
             this.tree.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode3});
+            treeNode2});
             this.tree.Size = new System.Drawing.Size(507, 343);
             this.tree.TabIndex = 1;
             this.tree.AfterCollapse += new System.Windows.Forms.TreeViewEventHandler(this.tree_AfterCollapse);
             this.tree.AfterExpand += new System.Windows.Forms.TreeViewEventHandler(this.tree_AfterExpand);
             this.tree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.tree_AfterSelect);
+            this.tree.DragDrop += new System.Windows.Forms.DragEventHandler(this.tree_DragDrop);
+            this.tree.DragEnter += new System.Windows.Forms.DragEventHandler(this.tree_DragEnter);
             // 
             // label1
             // 
@@ -83,7 +88,7 @@
             this.кнДобКат.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.кнДобКат.Location = new System.Drawing.Point(280, 376);
             this.кнДобКат.Name = "кнДобКат";
-            this.кнДобКат.Size = new System.Drawing.Size(76, 34);
+            this.кнДобКат.Size = new System.Drawing.Size(76, 50);
             this.кнДобКат.TabIndex = 3;
             this.кнДобКат.Text = "Добавить каталог";
             this.кнДобКат.UseVisualStyleBackColor = true;
@@ -94,7 +99,7 @@
             this.кнДобФайл.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.кнДобФайл.Location = new System.Drawing.Point(362, 376);
             this.кнДобФайл.Name = "кнДобФайл";
-            this.кнДобФайл.Size = new System.Drawing.Size(79, 34);
+            this.кнДобФайл.Size = new System.Drawing.Size(79, 50);
             this.кнДобФайл.TabIndex = 4;
             this.кнДобФайл.Text = "Добавить файл";
             this.кнДобФайл.UseVisualStyleBackColor = true;
@@ -147,7 +152,7 @@
             this.btnStart.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.btnStart.Location = new System.Drawing.Point(13, 376);
             this.btnStart.Name = "btnStart";
-            this.btnStart.Size = new System.Drawing.Size(116, 33);
+            this.btnStart.Size = new System.Drawing.Size(116, 50);
             this.btnStart.TabIndex = 9;
             this.btnStart.Text = "Старт Расчёта";
             this.btnStart.UseVisualStyleBackColor = true;
@@ -234,10 +239,35 @@
             this.chkCounter.UseVisualStyleBackColor = true;
             this.chkCounter.CheckedChanged += new System.EventHandler(this.chkCounter_CheckedChanged);
             // 
+            // Очистка
+            // 
+            this.Очистка.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.Очистка.Location = new System.Drawing.Point(522, 376);
+            this.Очистка.Name = "Очистка";
+            this.Очистка.Size = new System.Drawing.Size(81, 22);
+            this.Очистка.TabIndex = 22;
+            this.Очистка.Text = "Очистить";
+            this.Очистка.UseVisualStyleBackColor = true;
+            this.Очистка.Click += new System.EventHandler(this.Очистка_Click);
+            // 
+            // SaveTree
+            // 
+            this.SaveTree.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+            this.SaveTree.Location = new System.Drawing.Point(447, 404);
+            this.SaveTree.Name = "SaveTree";
+            this.SaveTree.Size = new System.Drawing.Size(156, 22);
+            this.SaveTree.TabIndex = 23;
+            this.SaveTree.Text = "Сохранить вхождения";
+            this.SaveTree.UseVisualStyleBackColor = true;
+            this.SaveTree.Click += new System.EventHandler(this.SaveTree_Click);
+            // 
             // Form1
             // 
+            this.AllowDrop = true;
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.ClientSize = new System.Drawing.Size(800, 424);
+            this.ClientSize = new System.Drawing.Size(800, 432);
+            this.Controls.Add(this.SaveTree);
+            this.Controls.Add(this.Очистка);
             this.Controls.Add(this.chkCounter);
             this.Controls.Add(this.logBox);
             this.Controls.Add(this.label8);
@@ -285,6 +315,8 @@
         private System.Windows.Forms.Label label8;
         private System.Windows.Forms.RichTextBox logBox;
         private System.Windows.Forms.CheckBox chkCounter;
+        public System.Windows.Forms.Button Очистка;
+        public System.Windows.Forms.Button SaveTree;
     }
 }
 

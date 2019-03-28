@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using VB = Microsoft.VisualBasic;
+using System.IO;
+using System.Linq;
 
 
 namespace WF
@@ -43,6 +45,7 @@ namespace WF
             _LogTextBox = logBox;
             if (isUr) this.Text += " - Юридические лица";
             else this.Text += " - Физические лица";
+            JSONSerializer.DeSerialize(ref tree);
         }
 
         /// <summary>
@@ -245,6 +248,7 @@ namespace WF
                     Paths.Add(nn.Text);
                 }
             }
+            JSONSerializer.Serialize(tree);
 
             btnStart.Visible = false;
             chkCounter.Enabled = false;
@@ -300,6 +304,93 @@ namespace WF
                     CounterGroup = false;
                     break;
             }
+        }
+
+        /// <summary>
+        /// Событие Drag&Drop папок или файлов в TreeView
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tree_DragDrop(object sender, DragEventArgs e)
+        {
+            
+            if (e.Data.GetDataPresent(DataFormats.FileDrop, false))
+            {
+                var paths = (string[]) e.Data.GetData(DataFormats.FileDrop);
+                e.Effect = DragDropEffects.Link;
+                
+
+                if (paths[0].ToLowerInvariant().EndsWith(".xls") ||
+                    paths[0].ToLowerInvariant().EndsWith(".xlsx") ||
+                    paths[0].ToLowerInvariant().EndsWith(".xlsm"))
+                {
+                    string s = Convert.ToString(VB.Interaction.InputBox("Введите имя каталога", "Создание каталога"));
+                    if (s == "") return;
+                    tree.PathSeparator = "/";
+                    tree.Nodes[0].Nodes.Add(s, s);
+                    locker2.лстПапки.Items.Add(s);
+
+                    foreach (var p in paths)
+                    {
+                        tree.Nodes[0].Nodes[s].Nodes.Add(p, p);
+                    }
+                }
+                else
+                {
+                    
+                    foreach (var p in paths)
+                    {
+                        string s = Convert.ToString(VB.Interaction.InputBox("Введите имя каталога для:\n"+p, "Создание каталога"));
+                        if (s == "") return;
+                        tree.PathSeparator = "/";
+                        tree.Nodes[0].Nodes.Add(s, s);
+                        locker2.лстПапки.Items.Add(s);
+                        var dir = new DirectoryInfo(p);
+                        dir.GetFiles()
+                            .Where(n => n.FullName.ToLowerInvariant().EndsWith(".xls") ||
+                                        n.FullName.ToLowerInvariant().EndsWith(".xlsx") ||
+                                        n.FullName.ToLowerInvariant().EndsWith(".xlsm"))
+                            .Select(n => tree.Nodes[0].Nodes[s].Nodes.Add(n.FullName, n.FullName)).ToArray();
+                    }
+                    
+                }
+
+                tree.Refresh();
+                tree.ExpandAll();
+                NodeCount();
+            }
+            else
+                e.Effect = DragDropEffects.None;
+        }
+
+        /// <summary>
+        /// Конфигуратор события Drag&Drop для TreeView
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tree_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop, false))
+            {
+                e.Effect = DragDropEffects.Link;
+            }
+            else
+                e.Effect = DragDropEffects.None;
+        }
+
+        /// <summary>
+        /// Отчистка содержимого TreeView (за исключением корня)
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Очистка_Click(object sender, EventArgs e)
+        {
+            tree.Nodes[0].Nodes.Clear();
+        }
+
+        private void SaveTree_Click(object sender, EventArgs e)
+        {
+            JSONSerializer.Serialize(tree);
         }
     }
 

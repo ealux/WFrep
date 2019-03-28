@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Threading.Tasks;
-using System.Diagnostics;
 using OfficeOpenXml;
 using System.Windows.Forms;
 using Microsoft.Office.Interop.Excel;
@@ -42,9 +41,11 @@ namespace WF
                 catch (Exception)
                 {
                     //Конвертируем файл в расширение .xlsx, используя Interop.Excel
-                    var excelApp = new Microsoft.Office.Interop.Excel.Application();
-                    excelApp.Visible = false;
-                    excelApp.DisplayAlerts = false;
+                    var excelApp = new Microsoft.Office.Interop.Excel.Application
+                    {
+                        Visible = false,
+                        DisplayAlerts = false
+                    };
                     var book = excelApp.Workbooks.Add(v);
                     book.SaveAs(v + "x", XlFileFormat.xlOpenXMLWorkbook);
                     var p = book.Path + "\\" + book.Name;
@@ -57,13 +58,6 @@ namespace WF
                         books.Add(e);
                         File.Delete(v);
                     }
-                    //MessageBox.Show(
-                    //    "Внимание!\n\nВы пытаетесь обработать файл формата (*xls).\nДля корректной работы преобразуйте выбраный файл в формат (*.xlsx)!",
-                    //    "Ошибка!");
-                    //Form1.Paths.Clear();
-                    //butStart_Update(true);
-
-                    //return;
                 }
 
                 Label5_Update("");
@@ -282,6 +276,27 @@ namespace WF
             return erl;
         }
 
+        /// <summary>
+        /// Конвертация показания и перемножение на коэффициент пересчета
+        /// </summary>
+        /// <param name="pok">Показания (начальные/конечные)</param>
+        /// <param name="koef">Коэффициент пересчета</param>
+        /// <returns></returns>
+        private static double ConvertStrToDbleWithMult(string pok, string koef)
+        {
+            double doubl = 0;
+            string opr = pok;
+            string kf = koef;
+
+            if (!opr.NotInvalidText()) return 0;
+            if (opr.Contains(".")) opr = opr.Replace(".", ",");
+            if (kf.Contains(".")) kf = kf.Replace(".", ",");
+
+            if (kf.NotInvalidText()) doubl = Convert.ToDouble(opr)* Convert.ToDouble(kf);
+
+            return doubl;
+        }
+
         //Main method
         private static List<UserUr> Classif(List<List<UserUr>> lst)
         {
@@ -307,7 +322,7 @@ namespace WF
                 task2.Start();
                 Task.WaitAll(task1, task2);
 
-                var NextRemains = workerNext.Except(bufRangeNext, new MyEqualityComparerWithoutDataUr()).ToList();
+                var nextRemains = workerNext.Except(bufRangeNext, new MyEqualityComparerWithoutDataUr()).ToList();
 
                 current = current.Except(bufRangeCurrent, new MyEqualityComparerWithoutDataUr()).ToList();
 
@@ -318,7 +333,7 @@ namespace WF
                     bufRangeCurrent[j].SetUserParams(22, bufRangeNext[j].UserParams(22));
                 }
 
-                current = current.Concat(bufRangeCurrent).Concat(NextRemains).ToList();
+                current = current.Concat(bufRangeCurrent).Concat(nextRemains).ToList();
 
                 worker = current.Distinct(new MyEqualityComparerFullUr()).ToList();
 
@@ -330,8 +345,15 @@ namespace WF
 
             Label4_Update("Этап 3 из 4");
             logTextBox_Update("\nЗавершена проверка. Готовим выходныой файл...\n");
-            worker = worker.Where((u) => { return u.НачПокДата.NotInvalidText(); }).OrderBy(n => n.UserParams(0)).ThenBy(n => n.UserParams(3)).ToList();
-            worker = worker.Where((u) => { return u.КонПокДата.NotInvalidText(); }).OrderBy(n => n.UserParams(0)).ThenBy(n => n.UserParams(3)).ToList();
+            worker = worker.Where(u => u.НачПокДата.NotInvalidText()).OrderBy(n => n.UserParams(0)).ThenBy(n => n.UserParams(3)).ToList();
+            worker = worker.Where(u => u.КонПокДата.NotInvalidText()).OrderBy(n => n.UserParams(0)).ThenBy(n => n.UserParams(3)).ToList();
+
+            //Прогон по КоэфПересчета
+            foreach (var u in worker)
+            {
+                u.SetUserParams(20, ConvertStrToDbleWithMult(u.UserParams(20), u.UserParams(24)).ToString());
+                u.SetUserParams(22, ConvertStrToDbleWithMult(u.UserParams(22), u.UserParams(24)).ToString());
+            }
 
             //Групировка по ЗаводскомуНомеруСчетчика + ТрафинойЗонеСуток
             if (Form1.CounterGroup)
@@ -353,7 +375,7 @@ namespace WF
                     subWorker.Add(u);
                 }
 
-                subWorker = subWorker.OrderBy(n => n.UserParams(0)).ThenBy(n => n.UserParams(3)).ToList();
+                subWorker = subWorker.OrderBy(n => n.UserParams(0)).ThenBy(n => n.UserParams(3)).ThenBy(n => n.UserParams(15)).ToList();
 
                 worker = subWorker;
             }
